@@ -84,6 +84,8 @@ Run migrations after starting services:
 docker-compose exec backend sh -c "cd /app/projects/ohra-backend && python -m alembic upgrade head"
 ```
 
+**Note:** Admin user is automatically created during migration. Configure via `OHRA_ADMIN_EMAIL`, `OHRA_ADMIN_NAME`, and `OHRA_ADMIN_EXTERNAL_ID` environment variables (defaults: `admin@ohra.local`, `Admin`).
+
 ## Stopping Services
 
 ```bash
