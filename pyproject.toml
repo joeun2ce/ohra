@@ -1,0 +1,60 @@
+[project]
+name = "ohra"
+version = "0.0.1"
+description = ""
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+members = [
+    "projects/ohra-backend",
+    "projects/ohra-worker-sync",
+    "features/ohra-shared_kernel",
+    "features/ohra-shared_kernel-infra-fastapi",
+    "features/ohra-shared_kernel-infra-database-sqla",
+    "features/ohra-shared_kernel-infra-sagemaker",
+    "features/ohra-shared_kernel-infra-qdrant",
+]
+
+
+[tool.ruff]
+line-length = 120
+namespace-packages = ["features/**", "projects/**"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "*.yaml",
+    "*.yml",
+    "**/ops/**",
+    "**/alembic/migrations/versions/**",
+]
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+# ignore = ["E731", "E402", "F401", "F841"]
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"

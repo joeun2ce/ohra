@@ -1,0 +1,116 @@
+services:
+  # Qdrant Vector Store
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: ohra-qdrant
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    networks:
+      - ohra-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: ohra-backend
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      # Database (SQLite)
+      OHRA_DB_URL: sqlite+aiosqlite:///./data/database.db
+      
+      # SageMaker
+      OHRA_SAGEMAKER_LLM_ENDPOINT: ${OHRA_SAGEMAKER_LLM_ENDPOINT:-qwen3-4b-instruct-2507-vllm-endpoint-1}
+      OHRA_SAGEMAKER_EMBEDDING_ENDPOINT: ${OHRA_SAGEMAKER_EMBEDDING_ENDPOINT:-qwen3-embedding-0-6b-endpoint}
+      OHRA_SAGEMAKER_EMBEDDING_DIMENSION: ${OHRA_SAGEMAKER_EMBEDDING_DIMENSION:-1024}
+      OHRA_SAGEMAKER_REGION: ${OHRA_SAGEMAKER_REGION:-ap-northeast-2}
+      
+      # Qdrant
+      OHRA_QDRANT_HOST: qdrant
+      OHRA_QDRANT_PORT: 6333
+      OHRA_QDRANT_COLLECTION_NAME: ${OHRA_QDRANT_COLLECTION_NAME:-ohra_documents}
+      
+      # AWS Credentials (for SageMaker)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-west-2}
+    depends_on:
+      qdrant:
+        condition: service_started
+    volumes:
+      - ./projects/ohra-backend/src:/app/projects/ohra-backend/src
+      - ./features:/app/features
+      - ./projects/ohra-backend/data:/app/data  # 로컬 디렉토리와 공유
+    networks:
+      - ohra-network
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: ohra-worker
+    environment:
+      OHRA_ATLASSIAN_EMAIL: ${OHRA_ATLASSIAN_EMAIL}
+      OHRA_ATLASSIAN_BASE_URL: ${OHRA_ATLASSIAN_BASE_URL}
+      OHRA_ATLASSIAN_TOKEN: ${OHRA_ATLASSIAN_TOKEN}
+      OHRA_SAGEMAKER_EMBEDDING_ENDPOINT: ${OHRA_SAGEMAKER_EMBEDDING_ENDPOINT:-qwen3-embedding-0-6b-endpoint}
+      OHRA_SAGEMAKER_EMBEDDING_DIMENSION: ${OHRA_SAGEMAKER_EMBEDDING_DIMENSION:-1024}
+      OHRA_SAGEMAKER_REGION: ${OHRA_SAGEMAKER_REGION:-ap-northeast-2}
+      OHRA_QDRANT_HOST: qdrant
+      OHRA_QDRANT_PORT: 6333
+      OHRA_QDRANT_COLLECTION_NAME: ${OHRA_QDRANT_COLLECTION_NAME:-ohra_documents}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-west-2}
+      OHRA_WORKER_EMBEDDING_BATCH_SIZE: ${OHRA_WORKER_EMBEDDING_BATCH_SIZE:-5}
+    depends_on:
+      qdrant:
+        condition: service_started
+    volumes:
+      - ./projects/ohra-worker-sync/src:/app/projects/ohra-worker-sync/src
+      - ./features:/app/features
+    networks:
+      - ohra-network
+    restart: unless-stopped
+
+  # Open WebUI
+  webui:
+    image: ghcr.io/open-webui/open-webui:v0.6.36
+    container_name: ohra-webui
+    ports:
+      - "${WEBUI_PORT:-3000}:8080"
+    environment:
+      # Connect to our backend API
+      OPENAI_API_BASE_URL: http://backend:8000/v1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder}
+      
+      # WebUI Settings
+      ENABLE_SIGNUP: ${WEBUI_ENABLE_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${WEBUI_DEFAULT_USER_ROLE:-user}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-your-secret-key-change-me}
+      ENABLE_FORWARD_USER_INFO_HEADERS: "true"
+      
+      # Database (SQLite)
+      DATABASE_URL: sqlite:////app/data/webui.db
+    # depends_on:
+    #   - backend
+    volumes:
+      - ./projects/ohra-open-webui/data:/app/data
+    networks:
+      - ohra-network
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  # backend_data:  # 로컬 디렉토리 사용으로 제거
+
+networks:
+  ohra-network:
+    driver: bridge

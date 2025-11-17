@@ -1,0 +1,120 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.uv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Jupyter Notebook
+*.ipynb
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+data/
+**/data/
+
+# Cache
+.pytest_cache/
+.testmondata/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.spechistory/
+
+# Logs
+*.log
+logs/
+tensorboard/
+wandb/
+
+# Models & Datasets
+*.zip
+*.pt.zip
+*.pt
+*.pth
+*.onnx
+**/DATASET/
+models/
+checkpoints/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Docker
+.dockerignore
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+
+# Build artifacts
+*.o
+*.a
+*.lib
+*.dll
+*.exe
+
+# AWS/SageMaker
+.aws/
+*.pem
+
+# Project specific
+projects/*/data/
+projects/*/projects/
+experiments/*/__pycache__/
+experiments/*/data/

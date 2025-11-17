@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# SageMaker serving entrypoint script
+# This script sets up environment variables and starts the SageMaker serving server
+
+# Set default values
+export API_HOST="${API_HOST:-0.0.0.0}"
+export API_PORT="${API_PORT:-8080}"
+
+# Get model ID from environment (SageMaker passes this)
+export MODEL_ID="${MODEL_ID:-Qwen/Qwen3-4B-Instruct-2507}"
+
+# Get instance type from SageMaker environment
+export INSTANCE_TYPE="${INSTANCE_TYPE:-ml.g5.12xlarge}"
+
+# Set uvicorn log level
+export UVICORN_LOG_LEVEL="${UVICORN_LOG_LEVEL:-info}"
+
+# PyTorch memory optimization
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+
+# Start the SageMaker serving server
+exec python3 /app/sagemaker_serving.py

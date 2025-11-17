@@ -1,0 +1,41 @@
+[project]
+name = "ohra-worker-sync"
+version = "0.1.0"
+description = "Document synchronization worker for OHRA"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ohra-shared-kernel",
+    "ohra-shared-kernel-infra-sagemaker",
+    "ohra-shared-kernel-infra-qdrant",
+    "atlassian-python-api>=3.41.0",
+    "jira>=3.5.0",
+    "beautifulsoup4>=4.12.0",
+    "langchain-text-splitters>=0.3.0",
+    "pydantic-settings>=2.0.0",
+    "apscheduler>=3.10.4",
+]
+
+[tool.uv.sources]
+ohra-shared-kernel = { workspace = true }
+ohra-shared-kernel-infra-sagemaker = { workspace = true }
+ohra-shared-kernel-infra-qdrant = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.build.targets.wheel]
+packages = ["src/ohra"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.4",
+]
+

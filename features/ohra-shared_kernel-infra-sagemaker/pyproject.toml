@@ -1,0 +1,34 @@
+[project]
+name = "ohra-shared-kernel-infra-sagemaker"
+version = "0.0.1"
+description = "SageMaker infrastructure adapters for LLM and Embedding"
+readme = "README.md"
+authors = [{ name = "eun2ce", email = "joeun2ce@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "ohra-shared-kernel",
+    "boto3>=1.36.13",
+    "pydantic-settings>=2.0.0",
+]
+
+[tool.uv.sources]
+ohra-shared-kernel = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[tool.hatch.build.targets.wheel]
+packages = ["src/ohra"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.4",
+]
+
