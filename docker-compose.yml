@@ -7,7 +7,7 @@ services:
       - "${QDRANT_PORT:-6333}:6333"
       - "${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
-      - qdrant_data:/qdrant/storage
+      - ./projects/ohra-qdrant/data:/qdrant/storage
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
     networks:
@@ -108,8 +108,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  qdrant_data:
-  # backend_data:  # 로컬 디렉토리 사용으로 제거
 
 networks:
   ohra-network:
