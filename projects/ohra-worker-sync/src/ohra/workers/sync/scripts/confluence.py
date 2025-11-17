@@ -95,7 +95,13 @@ def _build_document(page: Dict[str, Any], space_key: str, base_url: str) -> Opti
 
         version = page.get("version", {})
         webui_link = page.get("_links", {}).get("webui", "")
-        url = f"{base_url.rstrip('/')}{webui_link}" if webui_link else None
+        if webui_link:
+            if webui_link.startswith("/spaces/"):
+                webui_link = f"/wiki{webui_link}"
+            base_url_http = base_url.replace("https://", "http://")
+            url = f"{base_url_http.rstrip('/')}{webui_link}"
+        else:
+            url = None
         version_number = version.get("number")
 
         return {

@@ -40,15 +40,15 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
     else:
         jql = "updated >= -180d ORDER BY updated DESC"
 
-    start_at = 0
     max_results = 100
+    next_page_token = None
 
     while True:
         try:
             issues = jira.enhanced_search_issues(
                 jql_str=jql,
-                start_at=start_at,
-                max_results=max_results,
+                nextPageToken=next_page_token,
+                maxResults=max_results,
                 fields=[
                     "summary",
                     "description",
@@ -73,10 +73,11 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
                 if doc:
                     yield doc
 
-            if len(issues) < max_results:
+            # ResultList에서 nextPageToken 확인
+            if hasattr(issues, 'nextPageToken') and issues.nextPageToken:
+                next_page_token = issues.nextPageToken
+            else:
                 break
-
-            start_at += max_results
 
         except Exception as e:
             logger.error(f"Failed to fetch issues: {e}", exc_info=True)
