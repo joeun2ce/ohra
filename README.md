@@ -81,7 +81,7 @@ See `env.example` for all required environment variables.
 Run migrations after starting services:
 
 ```bash
-docker-compose exec backend uv run alembic upgrade head
+docker-compose exec backend sh -c "cd /app/projects/ohra-backend && python -m alembic upgrade head"
 ```
 
 ## Stopping Services
