@@ -55,6 +55,7 @@ env/
 *.sqlite3
 data/
 **/data/
+!**/data/.gitkeep
 
 # Cache
 .pytest_cache/
