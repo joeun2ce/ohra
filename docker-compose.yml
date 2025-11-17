@@ -23,7 +23,7 @@ services:
       - "${BACKEND_PORT:-8000}:8000"
     environment:
       # Database (SQLite)
-      OHRA_DB_URL: sqlite+aiosqlite:///./data/database.db
+        OHRA_DB_URL: ${OHRA_DB_URL:-sqlite+aiosqlite:////app/projects/ohra-backend/data/database.db}
       
       # SageMaker
       OHRA_SAGEMAKER_LLM_ENDPOINT: ${OHRA_SAGEMAKER_LLM_ENDPOINT:-qwen3-4b-instruct-2507-vllm-endpoint-1}
