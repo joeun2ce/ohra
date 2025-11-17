@@ -79,8 +79,14 @@ wandb/
 *.pth
 *.onnx
 **/DATASET/
-models/
+**/models/*.pt
+**/models/*.pth
+**/models/*.onnx
 checkpoints/
+
+# allow code directory models
+!projects/**/models/
+!features/**/models/
 
 # OS
 .DS_Store
