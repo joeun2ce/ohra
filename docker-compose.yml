@@ -107,9 +107,6 @@ services:
       - ohra-network
     restart: unless-stopped
 
-volumes:
-  # No named volumes - using local directory mounts
-  
 networks:
   ohra-network:
     driver: bridge
