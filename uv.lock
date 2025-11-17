@@ -1147,6 +1147,7 @@ name = "ohra-backend"
 version = "0.1.0"
 source = { editable = "projects/ohra-backend" }
 dependencies = [
+    { name = "alembic" },
     { name = "greenlet" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
@@ -1163,7 +1164,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "aiosqlite" },
-    { name = "alembic" },
     { name = "faker" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -1176,6 +1176,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "alembic", specifier = ">=1.16.1" },
     { name = "greenlet", specifier = ">=3.1.0" },
     { name = "langchain-core", specifier = ">=1.0.4" },
     { name = "langchain-openai", specifier = ">=0.3.18" },
@@ -1192,7 +1193,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "aiosqlite", specifier = ">=0.21.0" },
-    { name = "alembic", specifier = ">=1.16.1" },
     { name = "faker", specifier = ">=35.2.0" },
     { name = "pre-commit", specifier = ">=4.1.0" },
     { name = "pytest", specifier = ">=8.3.4" },
