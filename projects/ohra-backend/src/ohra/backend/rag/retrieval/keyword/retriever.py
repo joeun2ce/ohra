@@ -20,7 +20,7 @@ class BM25Retriever:
             return
 
         logger.info("Building BM25 index from Qdrant documents...")
-        all_docs = await self.vector_store.get_by_filter(filter={}, limit=10000)
+        all_docs = await self.vector_store.get_all_by_filter(filter={}, batch_size=1000)
 
         if not all_docs:
             logger.warning("No documents found in Qdrant for BM25 indexing")
