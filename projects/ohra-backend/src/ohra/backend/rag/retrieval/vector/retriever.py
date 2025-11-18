@@ -25,4 +25,5 @@ class VectorRetriever:
             filter=filter,
         )
 
-        return [RetrievedDocument(**result) for result in results]
+        documents = [RetrievedDocument(**result) for result in results]
+        return documents

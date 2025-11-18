@@ -24,7 +24,7 @@ class LangchainRAGAnalyzer:
     config: LangchainRAGAnalyzerConfig | dict = field(default_factory=LangchainRAGAnalyzerConfig)
 
     sagemaker_client: Any = field(init=False, repr=False)
-    hybrid_search_service: Optional[HybridSearchService] = field(init=False, repr=False, default=None)
+    hybrid_search_service: HybridSearchService = field(init=False, repr=False)
 
     def __post_init__(self):
         if isinstance(self.config, dict):
@@ -32,11 +32,9 @@ class LangchainRAGAnalyzer:
 
         self.sagemaker_client = boto3.client("sagemaker-runtime", region_name=self.config.region)
 
-        vector_retriever = VectorRetriever(vector_store=self.vector_store, embedding=self.embedding)
-        keyword_retriever = BM25Retriever(vector_store=self.vector_store)
         self.hybrid_search_service = HybridSearchService(
-            vector_retriever=vector_retriever,
-            keyword_retriever=keyword_retriever,
+            vector_retriever=VectorRetriever(vector_store=self.vector_store, embedding=self.embedding),
+            keyword_retriever=BM25Retriever(vector_store=self.vector_store),
             rrf_k=self.config.rrf_k,
         )
 
@@ -45,10 +43,8 @@ class LangchainRAGAnalyzer:
         request: ChatCompletionRequest,
         filter: Optional[Dict[str, Any]] = None,
     ) -> ChatCompletionResponse:
-        user_messages = [msg for msg in request.messages if msg.role == "user"]
-        query = user_messages[-1].content
+        query = next((msg.content for msg in reversed(request.messages) if msg.role == "user"), "")
 
-        # Use hybrid search service
         context_docs = await self.hybrid_search_service.search(
             query=query,
             top_k=self.config.top_k,
@@ -57,16 +53,11 @@ class LangchainRAGAnalyzer:
         )
         context_text = format_context_docs(context_docs)
 
-        # 이전 대화 내역 포함 (최근 5개 메시지: user+assistant 쌍 약 2-3개)
-        # 문맥 유지를 위해 최근 대화만 포함하여 토큰 수 제한
-        history_messages = [{"role": msg.role, "content": msg.content} for msg in request.messages[:-1]][-5:]
-
-        query = user_messages[-1].content
         enhanced_query = __PROMPT_TEMPLATE__.format(context=context_text, question=query)
 
         messages = [
             {"role": "system", "content": __SYSTEM_PROMPT__},
-            *history_messages,
+            *[{"role": msg.role, "content": msg.content} for msg in request.messages[-5:-1]],
             {"role": "user", "content": enhanced_query},
         ]
 

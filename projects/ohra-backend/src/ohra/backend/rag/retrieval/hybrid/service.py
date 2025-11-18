@@ -32,34 +32,31 @@ class HybridSearchService:
         
         return await search_methods[search_mode]()
 
-    def _calculate_rrf_scores(self, results: List[RetrievedDocument]) -> Dict[int, float]:
-        return {
-            doc.id: sum(1.0 / (self.rrf_k + rank) for rank, d in enumerate(results, 1) if d.id == doc.id)
-            for doc in results
-        }
-
     async def _hybrid_search(
         self,
         query: str,
         top_k: int,
         filter: Optional[Dict[str, Any]],
     ) -> List[RetrievedDocument]:
-        # asyncio.gather로 vector/keyword 검색 동시 실행
         vector_results, keyword_results = await asyncio.gather(
             self.vector_retriever.retrieve(query, top_k * 2, filter),
             self.keyword_retriever.retrieve(query, top_k * 2, filter)
         )
 
+        # Calculate RRF scores separately for each search method
         rrf_scores = defaultdict(float)
+        
+        # Vector results RRF calculation
         for rank, doc in enumerate(vector_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
+        
+        # Keyword results RRF calculation (independent ranking)
         for rank, doc in enumerate(keyword_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
 
-        # Build doc map
+        # Build doc map and combine
         doc_map = {doc.id: doc for doc in [*vector_results, *keyword_results]}
 
-        # Combine and sort
         combined = sorted(
             [
                 RetrievedDocument(id=doc_id, score=score, metadata=doc_map[doc_id].metadata)
@@ -67,6 +64,6 @@ class HybridSearchService:
             ],
             key=lambda x: x.score,
             reverse=True
-        )
+        )[:top_k]
 
-        return combined[:top_k]
+        return combined

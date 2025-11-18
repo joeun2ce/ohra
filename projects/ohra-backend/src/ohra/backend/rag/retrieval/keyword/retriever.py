@@ -61,8 +61,9 @@ class BM25Retriever:
                 if self._matches_filter(doc.get("metadata", {}), filter)
             ]
 
-        return [
+        documents = [
             RetrievedDocument(id=doc["id"], score=float(score), metadata=doc.get("metadata", {}))
             for score, doc in scored_docs[:top_k]
             if score > 0
         ]
+        return documents
