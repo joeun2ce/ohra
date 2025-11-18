@@ -31,7 +31,15 @@ async def transform_batch(
                     }
                 )
 
-    texts = [item["chunk"]["content"] for item in chunks]
+    # 모든 청크에 title을 prefix로 추가하여 임베딩 (검색 정확도 향상)
+    texts = []
+    for item in chunks:
+        content = item["chunk"]["content"]
+        title = item["doc"].get("title", "")
+        if title:
+            content = f"{title}\n\n{content}"
+        texts.append(content)
+    
     embeddings = await embedding.embed_batch(texts)
 
     vectors = []

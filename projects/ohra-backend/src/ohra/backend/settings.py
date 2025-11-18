@@ -66,7 +66,6 @@ class Settings(BaseSettings):
         return LangchainRAGAnalyzerConfig(
             endpoint_name=self.sagemaker_llm_endpoint,
             region=self.sagemaker_region,
-            top_k=5,
         )
 
     model_config = SettingsConfigDict(env_prefix="OHRA_", env_file=".env", env_file_encoding="utf-8", extra="allow")

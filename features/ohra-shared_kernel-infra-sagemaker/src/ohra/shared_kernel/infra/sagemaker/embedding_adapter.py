@@ -2,13 +2,12 @@ import logging
 import boto3
 import json
 from typing import List, Optional
-from ohra.shared_kernel.infra.embedding.interface import EmbeddingInterface
 from ohra.shared_kernel.infra.embedding.exceptions import EmbeddingException
 
 logger = logging.getLogger(__name__)
 
 
-class SageMakerEmbeddingAdapter(EmbeddingInterface):
+class SageMakerEmbeddingAdapter:
     def __init__(self, endpoint_name: str, dimension: int, region: str = "us-west-2"):
         self.client = boto3.client("sagemaker-runtime", region_name=region)
         self.endpoint_name = endpoint_name

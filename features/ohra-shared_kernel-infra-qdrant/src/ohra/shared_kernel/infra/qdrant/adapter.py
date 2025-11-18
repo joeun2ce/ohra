@@ -1,11 +1,10 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct, Filter
 from typing import List, Dict, Any, Optional
-from ohra.shared_kernel.infra.vector_store.interface import VectorStoreInterface
 from ohra.shared_kernel.infra.vector_store.exceptions import VectorStoreException
 
 
-class QdrantAdapter(VectorStoreInterface):
+class QdrantAdapter:
     def __init__(self, host: str, port: int, collection_name: str):
         self.client = QdrantClient(host=host, port=port)
         self.collection_name = collection_name

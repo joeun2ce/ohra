@@ -15,6 +15,7 @@ class OhraContainer(containers.DeclarativeContainer):
             "ohra.shared_kernel.infra.database.sqla.mixin",
             "ohra.backend.auth.rest.fastapi",
             "ohra.backend.rag.rest.fastapi",
+            "ohra.backend.rag.service.v1.pipeline",
         ],
     )
 

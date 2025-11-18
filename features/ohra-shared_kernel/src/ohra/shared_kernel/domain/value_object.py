@@ -23,31 +23,3 @@ class ValueObject(ABC):
 
         instance = cls(value=value)
         return instance
-
-
-class RoomStatus(ValueObject, str, Enum):
-    AVAILABLE = "AVAILABLE"
-    RESERVED = "RESERVED"
-    OCCUPIED = "OCCUPIED"
-
-    @property
-    def is_available(self) -> bool:
-        return self == RoomStatus.AVAILABLE
-
-    @property
-    def is_reserved(self) -> bool:
-        return self == RoomStatus.RESERVED
-
-    @property
-    def is_occupied(self) -> bool:
-        return self == RoomStatus.OCCUPIED
-
-
-class ReservationStatus(ValueObject, str, Enum):
-    IN_PROGRESS = "IN-PROGRESS"
-    CANCELLED = "CANCELLED"
-    COMPLETE = "COMPLETE"
-
-    @property
-    def in_progress(self) -> bool:
-        return self == ReservationStatus.IN_PROGRESS

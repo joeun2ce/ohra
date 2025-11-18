@@ -17,7 +17,7 @@ from ohra.backend.rag.dtos.response import (
 )
 from ohra.backend.rag.dtos.schemas import ModelInfo
 from ohra.backend.auth.dependencies import get_current_user_id
-from ohra.shared_kernel.infra.embedding.interface import EmbeddingInterface
+from ohra.shared_kernel.infra.sagemaker import SageMakerEmbeddingAdapter
 from ohra.backend.rag import exceptions
 
 router = APIRouter(prefix="/v1", tags=["rag"])
@@ -69,7 +69,7 @@ async def submit_feedback(
 @inject
 async def create_embedding(
     *,
-    embedding: EmbeddingInterface = Depends(get_embedding),
+    embedding: SageMakerEmbeddingAdapter = Depends(get_embedding),
     payload: EmbeddingRequest = Body(),
 ) -> EmbeddingResponse:
     if isinstance(payload.input, str):

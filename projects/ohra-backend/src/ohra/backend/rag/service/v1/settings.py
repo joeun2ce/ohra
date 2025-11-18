@@ -8,3 +8,5 @@ class LangchainRAGAnalyzerConfig(BaseModel):
     top_k: int = Field(default=5)
     score_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
     stream: bool = Field(default=False)
+    search_mode: str = Field(default="hybrid", description="Search mode: 'vector', 'keyword', or 'hybrid'")
+    rrf_k: int = Field(default=60, description="RRF constant for hybrid search")
