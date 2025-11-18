@@ -71,7 +71,9 @@ def sync_script(
                 host=settings.qdrant.host, port=settings.qdrant.port, collection_name=settings.qdrant.collection_name
             )
 
-            await vector_store.ensure_collection_exists(vector_size=settings.sagemaker.embedding_dimension)
+            await vector_store.ensure_collection_exists(
+                vector_size=settings.sagemaker.embedding_dimension, enable_sparse=True
+            )
 
             doc_batch = []
             chunk_buffer = []
