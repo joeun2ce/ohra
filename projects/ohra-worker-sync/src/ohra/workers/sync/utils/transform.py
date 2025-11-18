@@ -1,8 +1,30 @@
 import hashlib
 from typing import List, Dict, Any
+from collections import Counter
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from ohra.shared_kernel.infra.sagemaker import SageMakerEmbeddingAdapter
 from ohra.workers.sync.schemas import VectorPayload
+
+
+def _calculate_sparse_vector(text: str) -> Dict[str, List]:
+    """Calculate BM25-style sparse vector for text."""
+    tokens = text.lower().split()
+    if not tokens:
+        return {"indices": [], "values": []}
+
+    token_counts = Counter(tokens)
+    total_tokens = len(tokens)
+
+    indices = []
+    values = []
+
+    for token, count in token_counts.items():
+        token_id = hash(token) % (2 ** 31)
+        score = count / total_tokens
+        indices.append(token_id)
+        values.append(float(score))
+
+    return {"indices": indices, "values": values}
 
 
 async def transform_batch(
@@ -52,10 +74,13 @@ async def transform_batch(
 
         payload = _build_payload(item["doc"], item["chunk"], source_type, content_hash)
 
+        sparse_vector = _calculate_sparse_vector(content)
+
         vectors.append(
             {
                 "id": vector_id,
                 "vector": emb,
+                "sparse_vector": sparse_vector,
                 "metadata": payload.model_dump(exclude_none=True),
             }
         )
