@@ -8,7 +8,6 @@ from ohra.shared_kernel.infra.qdrant import QdrantAdapter
 
 from .prompt import __SYSTEM_PROMPT__, __PROMPT_TEMPLATE__, format_context_docs
 from .settings import LangchainRAGAnalyzerConfig
-from .schema import RetrievedDocument
 from ohra.backend.rag.retrieval.vector.retriever import VectorRetriever
 from ohra.backend.rag.retrieval.keyword.retriever import BM25Retriever
 from ohra.backend.rag.retrieval.hybrid.service import HybridSearchService

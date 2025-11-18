@@ -8,7 +8,6 @@ from ohra.backend.rag.service.v1.schema import RetrievedDocument
 
 @dataclass
 class VectorRetriever:
-
     vector_store: QdrantAdapter
     embedding: SageMakerEmbeddingAdapter
 

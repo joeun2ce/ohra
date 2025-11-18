@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Text, ForeignKey
+from sqlalchemy import Column, String, Integer, Text
 from ohra.shared_kernel.infra.database.sqla.base import Base, TableNamePrefixMixin
 from ohra.shared_kernel.infra.database.sqla.mixin import TimestampColumnMixin
 

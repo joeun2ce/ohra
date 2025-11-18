@@ -29,10 +29,7 @@ class BM25Retriever:
             return
 
         self._documents = all_docs
-        tokenized_docs = [
-            doc.get("metadata", {}).get("content", "").lower().split()
-            for doc in all_docs
-        ]
+        tokenized_docs = [doc.get("metadata", {}).get("content", "").lower().split() for doc in all_docs]
 
         self._bm25_index = BM25Okapi(tokenized_docs)
         logger.info(f"BM25 index built with {len(self._documents)} documents")
@@ -57,8 +54,7 @@ class BM25Retriever:
 
         if filter:
             scored_docs = [
-                (score, doc) for score, doc in scored_docs
-                if self._matches_filter(doc.get("metadata", {}), filter)
+                (score, doc) for score, doc in scored_docs if self._matches_filter(doc.get("metadata", {}), filter)
             ]
 
         documents = [

@@ -26,10 +26,10 @@ class HybridSearchService:
             "keyword": lambda: self.keyword_retriever.retrieve(query, top_k, filter),
             "hybrid": lambda: self._hybrid_search(query, top_k, filter),
         }
-        
+
         if search_mode not in search_methods:
             raise ValueError(f"Invalid search_mode: {search_mode}. Must be 'vector', 'keyword', or 'hybrid'")
-        
+
         return await search_methods[search_mode]()
 
     async def _hybrid_search(
@@ -40,16 +40,16 @@ class HybridSearchService:
     ) -> List[RetrievedDocument]:
         vector_results, keyword_results = await asyncio.gather(
             self.vector_retriever.retrieve(query, top_k * 2, filter),
-            self.keyword_retriever.retrieve(query, top_k * 2, filter)
+            self.keyword_retriever.retrieve(query, top_k * 2, filter),
         )
 
         # Calculate RRF scores separately for each search method
         rrf_scores = defaultdict(float)
-        
+
         # Vector results RRF calculation
         for rank, doc in enumerate(vector_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
-        
+
         # Keyword results RRF calculation (independent ranking)
         for rank, doc in enumerate(keyword_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
@@ -63,7 +63,7 @@ class HybridSearchService:
                 for doc_id, score in rrf_scores.items()
             ],
             key=lambda x: x.score,
-            reverse=True
+            reverse=True,
         )[:top_k]
 
         return combined
