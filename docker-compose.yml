@@ -46,7 +46,7 @@ services:
     volumes:
       - ./projects/ohra-backend/src:/app/projects/ohra-backend/src
       - ./features:/app/features
-      - ./projects/ohra-backend/data:/app/data  # 로컬 디렉토리와 공유
+      - ./projects/ohra-backend/data:/app/projects/ohra-backend/data
     networks:
       - ohra-network
     restart: unless-stopped
@@ -56,6 +56,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.worker
     container_name: ohra-worker
+    #command: python -m ohra.workers.sync.main all --since 2024-01-01
+    command: python -m ohra.workers.sync.main all --schedule ${WORKER_SYNC_INTERVAL_HOURS:-6}
     environment:
       OHRA_ATLASSIAN_EMAIL: ${OHRA_ATLASSIAN_EMAIL}
       OHRA_ATLASSIAN_BASE_URL: ${OHRA_ATLASSIAN_BASE_URL}
