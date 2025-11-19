@@ -1,12 +1,9 @@
 import asyncio
-import logging
 from datetime import datetime
 from typing import Dict, Any, Optional
 from jira import JIRA
 
 from ohra.workers.sync.scripts.base import sync_script
-
-logger = logging.getLogger(__name__)
 
 
 def extract_documents(url: str, email: str, token: str, last_sync_time: Optional[datetime] = None):
@@ -73,14 +70,12 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
                 if doc:
                     yield doc
 
-            # ResultList에서 nextPageToken 확인
             if hasattr(issues, 'nextPageToken') and issues.nextPageToken:
                 next_page_token = issues.nextPageToken
             else:
                 break
 
-        except Exception as e:
-            logger.error(f"Failed to fetch issues: {e}", exc_info=True)
+        except Exception:
             break
 
 
@@ -121,8 +116,7 @@ def _build_document(issue, base_url: str) -> Optional[Dict[str, Any]]:
             "version_key": updated_at.isoformat() if updated_at else None,
             "metadata": {"issue_key": issue.key, "project_key": project_key},
         }
-    except Exception as e:
-        logger.error(f"Failed to build document from issue {getattr(issue, 'key', 'unknown')}: {e}", exc_info=True)
+    except Exception:
         return None
 
 
@@ -137,14 +131,6 @@ def _build_document(issue, base_url: str) -> Optional[Dict[str, Any]]:
     },
 )
 def main(last_sync_time: Optional[datetime] = None, **config):
-    """
-    Jira 동기화 메인 함수
-
-    데코레이터가 자동으로:
-    - extract_documents 호출
-    - 중복 체크
-    - 청킹 + 임베딩 + 벡터 저장
-    """
     return extract_documents(last_sync_time=last_sync_time, **config)
 
 

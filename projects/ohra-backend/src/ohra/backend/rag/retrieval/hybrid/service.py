@@ -43,18 +43,14 @@ class HybridSearchService:
             self.keyword_retriever.retrieve(query, top_k * 2, filter),
         )
 
-        # Calculate RRF scores separately for each search method
         rrf_scores = defaultdict(float)
 
-        # Vector results RRF calculation
         for rank, doc in enumerate(vector_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
 
-        # Keyword results RRF calculation (independent ranking)
         for rank, doc in enumerate(keyword_results, 1):
             rrf_scores[doc.id] += 1.0 / (self.rrf_k + rank)
 
-        # Build doc map and combine
         doc_map = {doc.id: doc for doc in [*vector_results, *keyword_results]}
 
         combined = sorted(

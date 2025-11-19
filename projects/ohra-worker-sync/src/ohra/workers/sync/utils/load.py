@@ -1,8 +1,5 @@
-import logging
 from typing import List, Dict, Any
 from ohra.shared_kernel.infra.qdrant import QdrantAdapter
-
-logger = logging.getLogger(__name__)
 
 
 async def load_batch(vectors: List[Dict[str, Any]], vector_store: QdrantAdapter) -> int:
@@ -20,6 +17,5 @@ async def load_batch(vectors: List[Dict[str, Any]], vector_store: QdrantAdapter)
             await vector_store.upsert_batch(unique_vectors)
 
         return len(unique_vectors)
-    except Exception as e:
-        logger.error(f"Failed to load batch: {e}", exc_info=True)
+    except Exception:
         return 0

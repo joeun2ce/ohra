@@ -125,3 +125,7 @@ projects/*/data/
 projects/*/projects/
 experiments/*/__pycache__/
 experiments/*/data/
+
+# Test results
+**/tests/results/
+run_all_tests.sh

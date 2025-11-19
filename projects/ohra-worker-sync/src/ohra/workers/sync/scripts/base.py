@@ -1,15 +1,12 @@
 from functools import wraps
 from typing import Callable, Optional
 from datetime import datetime
-import logging
 import gc
 from ohra.workers.settings import WorkerSettings
 from ohra.shared_kernel.infra.sagemaker import SageMakerEmbeddingAdapter
 from ohra.shared_kernel.infra.qdrant import QdrantAdapter
 from ohra.workers.sync.utils.transform import transform_batch
 from ohra.workers.sync.utils.load import load_batch
-
-logger = logging.getLogger(__name__)
 
 
 def sync_script(
@@ -26,7 +23,9 @@ def sync_script(
         chunk_size: 청킹 크기
         chunk_overlap: 청킹 오버랩
         get_config: settings에서 플랫폼별 설정을 가져오는 함수
-                    예: lambda s: {"url": s.atlassian.confluence_url, "email": s.atlassian.email, "token": s.atlassian.token}
+                    예: lambda s: {"url": s.atlassian.confluence_url,
+                                   "email": s.atlassian.email,
+                                   "token": s.atlassian.token}
                     또는 lambda s: {"token": s.notion_token, "database_id": s.notion_database_id}
 
     사용법:
@@ -143,9 +142,6 @@ def sync_script(
                 chunk_buffer.clear()
                 gc.collect()
 
-            logger.info(
-                f"Sync completed: {documents_synced} documents synced, {skipped} skipped, {vectors_upserted} vectors"
-            )
             return documents_synced, skipped, vectors_upserted
 
         return async_wrapper

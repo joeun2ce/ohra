@@ -13,7 +13,6 @@ class HybridRetriever:
     embedding: SageMakerEmbeddingAdapter
 
     def _calculate_query_sparse_vector(self, query: str) -> Dict[str, List[int]]:
-        """Calculate sparse vector for query using same method as worker."""
         tokens = query.lower().split()
         if not tokens:
             return {"indices": [], "values": []}
@@ -52,7 +51,6 @@ class HybridRetriever:
                 fusion="rrf",
             )
         else:
-            # Vector-only search
             results = await self.vector_store.search(
                 query_vector=query_vector,
                 top_k=top_k,

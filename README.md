@@ -120,3 +120,10 @@ docker-compose restart backend
 docker-compose exec backend bash
 docker-compose exec worker bash
 ```
+
+### testing
+
+```bash
+cd projects/{service name}
+uv run pytest tests/ -v
+```
