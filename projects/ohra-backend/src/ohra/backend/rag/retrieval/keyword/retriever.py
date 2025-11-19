@@ -46,9 +46,7 @@ class BM25Retriever:
             return
 
         self._documents = all_docs
-        tokenized_docs = [
-            _tokenize_korean(doc.get("metadata", {}).get("content", "")) for doc in all_docs
-        ]
+        tokenized_docs = [_tokenize_korean(doc.get("metadata", {}).get("content", "")) for doc in all_docs]
 
         self._bm25_index = BM25Okapi(tokenized_docs)
         logger.info(f"BM25 index built with {len(self._documents)} documents")

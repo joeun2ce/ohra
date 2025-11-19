@@ -68,12 +68,7 @@ class Settings(BaseSettings):
             region=self.sagemaker_region,
         )
 
-    model_config = SettingsConfigDict(
-        env_prefix="OHRA_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="allow"
-    )
+    model_config = SettingsConfigDict(env_prefix="OHRA_", env_file=".env", env_file_encoding="utf-8", extra="allow")
 
 
 Settings.model_rebuild()

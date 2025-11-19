@@ -40,7 +40,7 @@ class HybridRetriever:
         values = []
 
         for token, count in token_counts.items():
-            token_id = hash(token) % (2 ** 31)
+            token_id = hash(token) % (2**31)
             score = count / total_tokens
             indices.append(token_id)
             values.append(float(score))
@@ -55,7 +55,7 @@ class HybridRetriever:
         search_mode: str = "hybrid",
     ) -> List[RetrievedDocument]:
         query_vector = await self.embedding.embed_text(query)
-        
+
         if search_mode == "hybrid":
             query_sparse_vector = self._calculate_query_sparse_vector(query)
             results = await self.vector_store.search(
@@ -74,4 +74,3 @@ class HybridRetriever:
 
         documents = [RetrievedDocument(**result) for result in results]
         return documents
-

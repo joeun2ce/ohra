@@ -1,4 +1,5 @@
 """API 클라이언트 헬퍼"""
+
 import os
 import aiohttp
 import time
@@ -30,7 +31,7 @@ async def make_chat_request(
         "Authorization": f"Bearer {get_api_key()}",
         "Content-Type": "application/json",
     }
-    
+
     messages = [{"role": "user", "content": query}]
     payload = {
         "model": "Qwen/Qwen3-4B-Instruct-2507",
@@ -39,20 +40,20 @@ async def make_chat_request(
         "max_tokens": max_tokens,
         "stream": stream,
     }
-    
+
     if conversation_id:
         payload["user"] = conversation_id
-    
+
     start_time = time.time()
     try:
         async with session.post(url, json=payload, headers=headers) as response:
             elapsed = time.time() - start_time
             result = await response.json()
-            
+
             response_text = ""
             if result.get("choices") and len(result["choices"]) > 0:
                 response_text = result["choices"][0].get("message", {}).get("content", "")
-            
+
             return {
                 "status": response.status,
                 "elapsed_time": elapsed,
@@ -80,7 +81,7 @@ async def make_embedding_request(
         "Content-Type": "application/json",
     }
     payload = {"input": text}
-    
+
     try:
         async with session.post(url, json=payload, headers=headers) as response:
             if response.status == 200:
@@ -90,8 +91,7 @@ async def make_embedding_request(
                         "status": response.status,
                         "embedding": result["data"][0].get("embedding"),
                     }
-    except Exception as e:
+    except Exception:
         pass
-    
-    return None
 
+    return None

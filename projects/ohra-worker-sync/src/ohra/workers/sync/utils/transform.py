@@ -34,7 +34,7 @@ def _calculate_sparse_vector(text: str) -> Dict[str, List]:
     values = []
 
     for token, count in token_counts.items():
-        token_id = hash(token) % (2 ** 31)
+        token_id = hash(token) % (2**31)
         score = count / total_tokens
         indices.append(token_id)
         values.append(float(score))
@@ -75,7 +75,7 @@ async def transform_batch(
         if title:
             content = f"{title}\n\n{content}"
         texts.append(content)
-    
+
     embeddings = await embedding.embed_batch(texts)
 
     vectors = []

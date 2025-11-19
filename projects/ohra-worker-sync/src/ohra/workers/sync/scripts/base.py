@@ -53,7 +53,10 @@ def sync_script(
     def decorator(extract_func: Callable) -> Callable:
         @wraps(extract_func)
         async def async_wrapper(last_sync_time: Optional[datetime] = None):
-            print(f"[Worker] async_wrapper started - source_type: {source_type}, last_sync_time: {last_sync_time}", flush=True)
+            print(
+                f"[Worker] async_wrapper started - source_type: {source_type}, last_sync_time: {last_sync_time}",
+                flush=True,
+            )
             settings = WorkerSettings()
 
             if get_config:
@@ -62,23 +65,23 @@ def sync_script(
             else:
                 config = {}
 
-            print(f"[Worker] Initializing embedding adapter...", flush=True)
+            print("[Worker] Initializing embedding adapter...", flush=True)
             embedding = SageMakerEmbeddingAdapter(
                 endpoint_name=settings.sagemaker.embedding_endpoint,
                 dimension=settings.sagemaker.embedding_dimension,
                 region=settings.sagemaker.region,
             )
 
-            print(f"[Worker] Initializing Qdrant adapter...", flush=True)
+            print("[Worker] Initializing Qdrant adapter...", flush=True)
             vector_store = QdrantAdapter(
                 host=settings.qdrant.host, port=settings.qdrant.port, collection_name=settings.qdrant.collection_name
             )
 
-            print(f"[Worker] Ensuring collection exists...", flush=True)
+            print("[Worker] Ensuring collection exists...", flush=True)
             await vector_store.ensure_collection_exists(
                 vector_size=settings.sagemaker.embedding_dimension, enable_sparse=True
             )
-            print(f"[Worker] Collection ready", flush=True)
+            print("[Worker] Collection ready", flush=True)
 
             doc_batch = []
             chunk_buffer = []
@@ -86,9 +89,9 @@ def sync_script(
             vectors_upserted = 0
             skipped = 0
 
-            print(f"[Worker] Starting document extraction...", flush=True)
+            print("[Worker] Starting document extraction...", flush=True)
             extract_gen = extract_func(last_sync_time=last_sync_time, **config)
-            print(f"[Worker] Document extractor generator created", flush=True)
+            print("[Worker] Document extractor generator created", flush=True)
 
             try:
                 doc_count = 0
@@ -155,6 +158,7 @@ def sync_script(
             except Exception as e:
                 print(f"[Worker] ERROR in async_wrapper: {e}", flush=True)
                 import traceback
+
                 traceback.print_exc()
                 raise
             finally:
@@ -162,7 +166,10 @@ def sync_script(
                 chunk_buffer.clear()
                 gc.collect()
 
-            print(f"[Worker] async_wrapper completed - synced: {documents_synced}, skipped: {skipped}, vectors: {vectors_upserted}", flush=True)
+            print(
+                f"[Worker] async_wrapper completed - synced: {documents_synced}, skipped: {skipped}, vectors: {vectors_upserted}",
+                flush=True,
+            )
             return documents_synced, skipped, vectors_upserted
 
         return async_wrapper

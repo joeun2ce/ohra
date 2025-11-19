@@ -23,32 +23,32 @@ def print_test_summary(test_info: Dict[str, Any]):
     print("=" * 80)
     print(f"Test Name: {test_info.get('test_name', 'Unknown')}")
     print(f"Test Type: {test_info.get('test_type', 'Unknown')}")
-    if test_info.get('is_evaluation_target'):
+    if test_info.get("is_evaluation_target"):
         print("📊 평가대상: YES")
     print(f"Started: {test_info.get('started_at', 'Unknown')}")
     print(f"Completed: {test_info.get('completed_at', 'Unknown')}")
     print(f"Total Duration: {test_info.get('total_duration', 0):.2f}s")
-    
-    if 'target' in test_info and 'result' in test_info:
+
+    if "target" in test_info and "result" in test_info:
         print("\n" + "-" * 80)
         print("TARGET vs RESULT")
         print("-" * 80)
-        target = test_info['target']
-        result = test_info['result']
-        
+        target = test_info["target"]
+        result = test_info["result"]
+
         print(f"목표: {target.get('description', 'N/A')}")
         print(f"기대값: {target.get('expected_value', 'N/A')}")
         print(f"실제값: {result.get('actual_value', 'N/A')}")
-        
-        achieved = result.get('achieved', False)
-        suitable = result.get('suitable', False)
-        
+
+        achieved = result.get("achieved", False)
+        suitable = result.get("suitable", False)
+
         print(f"달성 여부: {'✅ 달성' if achieved else '❌ 미달성'}")
         print(f"적합성: {'✅ 적합' if suitable else '⚠️ 부적합'}")
-        
-        if result.get('suitability_reason'):
+
+        if result.get("suitability_reason"):
             print(f"적합성 평가: {result['suitability_reason']}")
-    
+
     print("=" * 80 + "\n")
 
 
@@ -68,14 +68,14 @@ def save_test_results(test_name: str, results: Dict[str, Any], output_dir: Path 
     if output_dir is None:
         output_dir = Path(__file__).parent.parent / "results"
     output_dir.mkdir(exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{test_name}_{timestamp}.json"
     filepath = output_dir / filename
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
-    
+
     return filepath
 
 
@@ -84,49 +84,49 @@ def generate_markdown_report(test_name: str, results: Dict[str, Any], output_dir
     if output_dir is None:
         output_dir = Path(__file__).parent.parent / "results"
     output_dir.mkdir(exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{test_name}_{timestamp}.md"
     filepath = output_dir / filename
-    
+
     summary = results.get("summary", {})
     queries = results.get("queries", [])
-    
+
     markdown = f"""# 벤치마크 테스트 결과 보고서
 
 ## 테스트 정보
-- **테스트 이름**: {results.get('test_name', 'Unknown')}
-- **실행 시간**: {results.get('timestamp', 'Unknown')}
-- **총 쿼리 수**: {summary.get('total_queries', 0)}
+- **테스트 이름**: {results.get("test_name", "Unknown")}
+- **실행 시간**: {results.get("timestamp", "Unknown")}
+- **총 쿼리 수**: {summary.get("total_queries", 0)}
 
 ## 성능 요약
 
 ### 응답 시간
-- **평균 응답 시간**: {summary.get('avg_response_time', 0):.2f}초
-- **최소 응답 시간**: {summary.get('min_response_time', 0):.2f}초
-- **최대 응답 시간**: {summary.get('max_response_time', 0):.2f}초
+- **평균 응답 시간**: {summary.get("avg_response_time", 0):.2f}초
+- **최소 응답 시간**: {summary.get("min_response_time", 0):.2f}초
+- **최대 응답 시간**: {summary.get("max_response_time", 0):.2f}초
 
 """
-    
-    if summary.get('avg_similarity') is not None:
+
+    if summary.get("avg_similarity") is not None:
         markdown += f"""### 임베딩 유사도
-- **평균 유사도**: {summary.get('avg_similarity', 0):.4f}
-- **최소 유사도**: {summary.get('min_similarity', 0):.4f}
-- **최대 유사도**: {summary.get('max_similarity', 0):.4f}
+- **평균 유사도**: {summary.get("avg_similarity", 0):.4f}
+- **최소 유사도**: {summary.get("min_similarity", 0):.4f}
+- **최대 유사도**: {summary.get("max_similarity", 0):.4f}
 
 """
-    
+
     markdown += """## 상세 결과
 
 """
-    
+
     for i, query_result in enumerate(queries, 1):
         query = query_result.get("query", "")
         elapsed = query_result.get("elapsed_time", 0)
         status = query_result.get("status", 0)
         response_text = query_result.get("response_text", "")
         quality = query_result.get("embedding_quality", {})
-        
+
         markdown += f"""### 쿼리 {i}: {query}
 
 - **응답 시간**: {elapsed:.2f}초
@@ -134,12 +134,12 @@ def generate_markdown_report(test_name: str, results: Dict[str, Any], output_dir
 - **응답 길이**: {len(response_text)}자
 
 """
-        
+
         if quality.get("similarity") is not None:
-            markdown += f"""- **임베딩 유사도**: {quality.get('similarity', 0):.4f}
+            markdown += f"""- **임베딩 유사도**: {quality.get("similarity", 0):.4f}
 
 """
-        
+
         if response_text:
             # 응답 텍스트를 요약 (처음 200자만)
             preview = response_text[:200] + "..." if len(response_text) > 200 else response_text
@@ -149,18 +149,17 @@ def generate_markdown_report(test_name: str, results: Dict[str, Any], output_dir
 ```
 
 """
-        
+
         markdown += "\n---\n\n"
-    
+
     markdown += f"""
 ## 메타데이터
 
 - 생성 시간: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 - 원본 JSON 파일: `{test_name}_{timestamp}.json`
 """
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(markdown)
-    
-    return filepath
 
+    return filepath

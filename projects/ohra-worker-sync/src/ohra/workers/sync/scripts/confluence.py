@@ -10,14 +10,7 @@ from ohra.workers.sync.scripts.base import sync_script
 def _fetch_page(confluence: Confluence, page_id: str) -> Optional[dict]:
     return confluence.get_page_by_id(
         page_id,
-        expand=(
-            "body.storage,"
-            "version,"
-            "metadata,"
-            "children.page,"
-            "children.page.children,"
-            "children.page.children.children"
-        )
+        expand=("body.storage,version,metadata,children.page,children.page.children,children.page.children.children"),
     )
 
 
@@ -25,29 +18,27 @@ def _get_all_children(confluence: Confluence, page_id: str) -> list:
     all_children = []
     start = 0
     limit = 100
-    
+
     while True:
         try:
-            children = confluence.get_page_child_by_type(
-                page_id, type="page", start=start, limit=limit
-            )
-            
+            children = confluence.get_page_child_by_type(page_id, type="page", start=start, limit=limit)
+
             if isinstance(children, dict):
                 child_list = children.get("results", [])
                 size = children.get("size", len(child_list))
             else:
                 child_list = children if isinstance(children, list) else []
                 size = len(child_list)
-            
+
             all_children.extend(child_list)
-            
+
             if size < limit or len(child_list) == 0:
                 break
-            
+
             start += limit
         except Exception:
             break
-    
+
     return all_children
 
 
@@ -66,7 +57,7 @@ def _get_page_with_children(
 
         version_num = str(page.get("version", {}).get("number", ""))
         visit_key = (page_id, version_num)
-        
+
         if visit_key in visited:
             return
         visited.add(visit_key)
@@ -78,27 +69,21 @@ def _get_page_with_children(
                 page_updated = datetime.fromisoformat(version_when.replace("Z", "+00:00"))
                 if page_updated < last_sync_time:
                     should_yield = False
-        
+
         if should_yield:
             doc = _build_document(page, space_key, base_url)
             if doc:
                 yield doc
 
-        child_container = (
-            page.get("children", {})
-            .get("page", {})
-            .get("results", [])
-        )
-        
+        child_container = page.get("children", {}).get("page", {}).get("results", [])
+
         if not child_container:
             child_container = _get_all_children(confluence, page_id)
-        
+
         for child in child_container:
             child_id = child.get("id")
             if child_id:
-                yield from _get_page_with_children(
-                    confluence, child_id, space_key, base_url, last_sync_time, visited
-                )
+                yield from _get_page_with_children(confluence, child_id, space_key, base_url, last_sync_time, visited)
     except Exception:
         pass
 
@@ -113,14 +98,14 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
     while True:
         try:
             spaces_response = confluence.get_all_spaces(start=start, limit=limit)
-            
+
             if isinstance(spaces_response, dict):
                 space_list = spaces_response.get("results", [])
                 size = spaces_response.get("size", len(space_list))
             else:
                 space_list = spaces_response if isinstance(spaces_response, list) else []
                 size = len(space_list)
-            
+
             all_spaces.extend(space_list)
 
             if size < limit or len(space_list) == 0:
@@ -134,21 +119,19 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
 
     for space_key in spaces:
         visited: Set[Tuple[str, str]] = set()
-        
+
         try:
             space_data = confluence.get_space(space_key, expand="homepage")
             home_page = space_data.get("homepage")
-            
+
             if not home_page:
                 continue
 
             home_id = home_page.get("id")
             if not home_id:
                 continue
-            
-            yield from _get_page_with_children(
-                confluence, home_id, space_key, url, last_sync_time, visited
-            )
+
+            yield from _get_page_with_children(confluence, home_id, space_key, url, last_sync_time, visited)
 
         except Exception:
             continue

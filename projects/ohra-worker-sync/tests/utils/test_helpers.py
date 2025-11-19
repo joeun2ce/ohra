@@ -1,4 +1,5 @@
 """Worker 테스트 헬퍼 (백엔드와 동일한 구조)"""
+
 import json
 from pathlib import Path
 from typing import Dict, Any
@@ -24,32 +25,32 @@ def print_test_summary(test_info: Dict[str, Any]):
     print("=" * 80)
     print(f"Test Name: {test_info.get('test_name', 'Unknown')}")
     print(f"Test Type: {test_info.get('test_type', 'Unknown')}")
-    if test_info.get('is_evaluation_target'):
+    if test_info.get("is_evaluation_target"):
         print("📊 평가대상: YES")
     print(f"Started: {test_info.get('started_at', 'Unknown')}")
     print(f"Completed: {test_info.get('completed_at', 'Unknown')}")
     print(f"Total Duration: {test_info.get('total_duration', 0):.2f}s")
-    
-    if 'target' in test_info and 'result' in test_info:
+
+    if "target" in test_info and "result" in test_info:
         print("\n" + "-" * 80)
         print("TARGET vs RESULT")
         print("-" * 80)
-        target = test_info['target']
-        result = test_info['result']
-        
+        target = test_info["target"]
+        result = test_info["result"]
+
         print(f"목표: {target.get('description', 'N/A')}")
         print(f"기대값: {target.get('expected_value', 'N/A')}")
         print(f"실제값: {result.get('actual_value', 'N/A')}")
-        
-        achieved = result.get('achieved', False)
-        suitable = result.get('suitable', False)
-        
+
+        achieved = result.get("achieved", False)
+        suitable = result.get("suitable", False)
+
         print(f"달성 여부: {'✅ 달성' if achieved else '❌ 미달성'}")
         print(f"적합성: {'✅ 적합' if suitable else '⚠️ 부적합'}")
-        
-        if result.get('suitability_reason'):
+
+        if result.get("suitability_reason"):
             print(f"적합성 평가: {result['suitability_reason']}")
-    
+
     print("=" * 80 + "\n")
 
 
@@ -58,13 +59,12 @@ def save_test_results(test_name: str, results: Dict[str, Any], output_dir: Path 
     if output_dir is None:
         output_dir = Path(__file__).parent.parent / "results"
     output_dir.mkdir(exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{test_name}_{timestamp}.json"
     filepath = output_dir / filename
-    
+
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
-    
-    return filepath
 
+    return filepath

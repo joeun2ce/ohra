@@ -52,7 +52,7 @@ class LangchainRAGAnalyzer:
         if context_docs:
             print(f"[RAG] First doc: {context_docs[0].title[:50]}... (score: {context_docs[0].score:.4f})", flush=True)
         else:
-            print(f"[RAG] No documents found!", flush=True)
+            print("[RAG] No documents found!", flush=True)
         context_text = format_context_docs(context_docs)
 
         enhanced_query = __PROMPT_TEMPLATE__.format(context=context_text, question=query)

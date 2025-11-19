@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from enum import Enum, EnumMeta
+from enum import EnumMeta
 from typing import Any, TypeVar
 
 from ohra.shared_kernel.domain.exception import ValueObjectEnumError

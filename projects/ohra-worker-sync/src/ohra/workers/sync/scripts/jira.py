@@ -70,7 +70,7 @@ def extract_documents(url: str, email: str, token: str, last_sync_time: Optional
                 if doc:
                     yield doc
 
-            if hasattr(issues, 'nextPageToken') and issues.nextPageToken:
+            if hasattr(issues, "nextPageToken") and issues.nextPageToken:
                 next_page_token = issues.nextPageToken
             else:
                 break
