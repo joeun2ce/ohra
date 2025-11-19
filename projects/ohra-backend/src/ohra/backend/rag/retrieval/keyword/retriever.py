@@ -9,6 +9,23 @@ from ohra.backend.rag.service.v1.schema import RetrievedDocument
 logger = logging.getLogger(__name__)
 
 
+def _tokenize_korean(text: str) -> List[str]:
+    # 단순 단어
+    tokens = []
+    words = text.lower().split()
+
+    for word in words:
+        tokens.append(word)
+        if len(word) >= 2:
+            for i in range(len(word) - 1):
+                if i + 2 <= len(word):
+                    tokens.append(word[i : i + 2])
+                if i + 3 <= len(word):
+                    tokens.append(word[i : i + 3])
+
+    return tokens
+
+
 @dataclass
 class BM25Retriever:
     vector_store: QdrantAdapter
@@ -29,7 +46,9 @@ class BM25Retriever:
             return
 
         self._documents = all_docs
-        tokenized_docs = [doc.get("metadata", {}).get("content", "").lower().split() for doc in all_docs]
+        tokenized_docs = [
+            _tokenize_korean(doc.get("metadata", {}).get("content", "")) for doc in all_docs
+        ]
 
         self._bm25_index = BM25Okapi(tokenized_docs)
         logger.info(f"BM25 index built with {len(self._documents)} documents")
@@ -48,7 +67,7 @@ class BM25Retriever:
         if not self._documents:
             return []
 
-        query_tokens = query.lower().split()
+        query_tokens = _tokenize_korean(query)
         scores = self._bm25_index.get_scores(query_tokens)
         scored_docs = sorted(zip(scores, self._documents), key=lambda x: x[0], reverse=True)
 
