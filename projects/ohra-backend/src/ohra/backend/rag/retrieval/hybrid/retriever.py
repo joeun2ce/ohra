@@ -27,6 +27,7 @@ def _tokenize_korean_for_sparse(text: str) -> List[str]:
 class HybridRetriever:
     vector_store: QdrantAdapter
     embedding: SageMakerEmbeddingAdapter
+    rrf_k: int = 60  # RRF constant default 60
 
     def _calculate_query_sparse_vector(self, query: str) -> Dict[str, List[int]]:
         tokens = _tokenize_korean_for_sparse(query)
@@ -52,25 +53,16 @@ class HybridRetriever:
         query: str,
         top_k: int = 5,
         filter: Optional[Dict[str, Any]] = None,
-        search_mode: str = "hybrid",
     ) -> List[RetrievedDocument]:
         query_vector = await self.embedding.embed_text(query)
-
-        if search_mode == "hybrid":
-            query_sparse_vector = self._calculate_query_sparse_vector(query)
-            results = await self.vector_store.search(
-                query_vector=query_vector,
-                top_k=top_k,
-                filter=filter,
-                query_sparse_vector=query_sparse_vector,
-                fusion="rrf",
-            )
-        else:
-            results = await self.vector_store.search(
-                query_vector=query_vector,
-                top_k=top_k,
-                filter=filter,
-            )
-
+        query_sparse_vector = self._calculate_query_sparse_vector(query)
+        results = await self.vector_store.search(
+            query_vector=query_vector,
+            top_k=top_k,
+            filter=filter,
+            query_sparse_vector=query_sparse_vector,
+            fusion="rrf",
+            rrf_k=self.rrf_k,
+        )
         documents = [RetrievedDocument(**result) for result in results]
         return documents

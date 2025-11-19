@@ -5,6 +5,7 @@ Revises: init_schema
 Create Date: 2025-11-17 00:00:01.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -25,10 +26,9 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove admin user if needed.
-    
+
     Note: This is intentionally left empty to avoid accidental data loss.
     If you need to remove the admin user, do it manually or implement
     a safe removal logic here.
     """
     pass
-

@@ -1,10 +1,11 @@
 """init_schema
 
 Revision ID: init_schema
-Revises: 
+Revises:
 Create Date: 2025-11-17 00:00:00.000000+00:00
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -111,4 +112,3 @@ def downgrade() -> None:
         op.drop_index("ix_ohra_user_external_user_id", table_name="ohra_user")
         op.drop_index("ix_ohra_user_email", table_name="ohra_user")
         op.drop_table("ohra_user")
-

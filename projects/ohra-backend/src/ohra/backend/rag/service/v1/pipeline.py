@@ -32,6 +32,7 @@ class LangchainRAGAnalyzer:
         self.hybrid_retriever = HybridRetriever(
             vector_store=self.vector_store,
             embedding=self.embedding,
+            rrf_k=self.config.rrf_k,
         )
 
     async def ainvoke(
@@ -41,12 +42,11 @@ class LangchainRAGAnalyzer:
     ) -> ChatCompletionResponse:
         query = next((msg.content for msg in reversed(request.messages) if msg.role == "user"), "")
 
-        print(f"[RAG] Query: {query[:100]}, top_k: {self.config.top_k}, mode: {self.config.search_mode}", flush=True)
+        print(f"[RAG] Query: {query[:100]}, top_k: {self.config.top_k}", flush=True)
         context_docs = await self.hybrid_retriever.retrieve(
             query=query,
             top_k=self.config.top_k,
             filter=filter,
-            search_mode=self.config.search_mode,
         )
         print(f"[RAG] Found {len(context_docs)} documents", flush=True)
         if context_docs:

@@ -104,18 +104,7 @@ class QdrantAdapter:
         must_conditions = [FieldCondition(key=key, match=MatchValue(value=value)) for key, value in filter.items()]
         return Filter(must=must_conditions) if must_conditions else None
 
-    def _apply_rrf(self, dense_results, sparse_results, top_k: int, k: int = 60):
-        """
-        Reciprocal Rank Fusion (RRF) 구현
-
-        RRF score = sum(1 / (k + rank)) for each retriever
-
-        Args:
-            dense_results: Dense vector 검색 결과
-            sparse_results: Sparse vector 검색 결과
-            top_k: 반환할 최대 문서 수
-            k: RRF 상수 (기본값: 60)
-        """
+    def _apply_rrf(self, dense_results, sparse_results, top_k: int, k: int = 60):  # RRF constant default 60
         rrf_scores = defaultdict(float)
         doc_map = {}
 
@@ -148,22 +137,8 @@ class QdrantAdapter:
         filter: Optional[Dict[str, Any]] = None,
         query_sparse_vector: Optional[Dict[str, List]] = None,
         fusion: str = "rrf",
+        rrf_k: int = 60,  # RRF constant default 60
     ) -> List[Dict[str, Any]]:
-        """
-        벡터 검색 수행 (Dense-only 또는 Hybrid with RRF)
-
-        Qdrant 1.16+에서 sparse vector 검색을 지원합니다.
-
-        Args:
-            query_vector: Dense 쿼리 벡터
-            top_k: 반환할 최대 문서 수
-            filter: 메타데이터 필터
-            query_sparse_vector: Sparse 벡터 (Hybrid 검색 시)
-            fusion: Fusion 방법 (기본값: "rrf")
-
-        Returns:
-            검색 결과 리스트
-        """
         try:
             search_filter = self._build_filter(filter)
 
@@ -191,7 +166,7 @@ class QdrantAdapter:
                 ).points
                 logger.info(f"Sparse search returned {len(sparse_results)} results")
 
-                results = self._apply_rrf(dense_results, sparse_results, top_k)
+                results = self._apply_rrf(dense_results, sparse_results, top_k, k=rrf_k)
                 logger.info(f"RRF returned {len(results)} results")
             else:
                 logger.info(f"Dense-only search: top_k={top_k}")
