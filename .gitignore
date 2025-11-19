@@ -128,4 +128,5 @@ experiments/*/data/
 
 # Test results
 **/tests/results/
+**/results/
 run_all_tests.sh
