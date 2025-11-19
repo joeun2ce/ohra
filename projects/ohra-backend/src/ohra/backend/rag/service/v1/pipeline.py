@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, Optional
 import json
 import boto3
-import time
 
 from ohra.shared_kernel.infra.sagemaker import SageMakerEmbeddingAdapter
 from ohra.shared_kernel.infra.qdrant import QdrantAdapter
@@ -40,17 +39,14 @@ class LangchainRAGAnalyzer:
         request: ChatCompletionRequest,
         filter: Optional[Dict[str, Any]] = None,
     ) -> ChatCompletionResponse:
-        total_start = time.time()
         query = next((msg.content for msg in reversed(request.messages) if msg.role == "user"), "")
 
-        search_start = time.time()
         context_docs = await self.hybrid_retriever.retrieve(
             query=query,
             top_k=self.config.top_k,
             filter=filter,
             search_mode=self.config.search_mode,
         )
-        search_time = time.time() - search_start
         context_text = format_context_docs(context_docs)
 
         enhanced_query = __PROMPT_TEMPLATE__.format(context=context_text, question=query)
@@ -70,33 +66,14 @@ class LangchainRAGAnalyzer:
         }
 
         try:
-            llm_start = time.time()
             response = self.sagemaker_client.invoke_endpoint(
                 EndpointName=self.config.endpoint_name, ContentType="application/json", Body=json.dumps(payload)
             )
 
             result = json.loads(response["Body"].read())
-            llm_time = time.time() - llm_start
-            total_time = time.time() - total_start
 
             chat_response = ChatCompletionResponse(**result)
             chat_response.model = request.model or self.config.model_name
-
-            # Performance log for report
-            print("\n" + "=" * 80)
-            print("RAG PIPELINE PERFORMANCE METRICS")
-            print("=" * 80)
-            print(f"Query: {query[:60]}...")
-            print(f"Search Mode: {self.config.search_mode}")
-            print(f"Retrieved Documents: {len(context_docs)}")
-            print(f"Search Time: {search_time:.3f}s")
-            print(f"LLM Inference Time: {llm_time:.3f}s")
-            print(f"Total Response Time: {total_time:.3f}s")
-            if result.get("usage"):
-                print(f"Tokens - Prompt: {result['usage'].get('prompt_tokens', 'N/A')}, "
-                      f"Completion: {result['usage'].get('completion_tokens', 'N/A')}, "
-                      f"Total: {result['usage'].get('total_tokens', 'N/A')}")
-            print("=" * 80 + "\n")
 
             return chat_response
         except Exception as e:
