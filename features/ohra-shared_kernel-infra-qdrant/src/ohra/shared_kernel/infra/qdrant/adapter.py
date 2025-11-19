@@ -1,3 +1,4 @@
+from collections import defaultdict
 from qdrant_client import QdrantClient
 from qdrant_client.models import (
     Distance,
@@ -10,7 +11,11 @@ from qdrant_client.models import (
     MatchValue,
 )
 from typing import List, Dict, Any, Optional, Union
+import logging
+
 from ohra.shared_kernel.infra.vector_store.exceptions import VectorStoreException
+
+logger = logging.getLogger(__name__)
 
 
 class QdrantAdapter:
@@ -108,6 +113,48 @@ class QdrantAdapter:
         ]
         return Filter(must=must_conditions) if must_conditions else None
 
+    def _apply_rrf(self, dense_results, sparse_results, top_k: int, k: int = 60):
+        """
+        Reciprocal Rank Fusion (RRF) 구현
+        
+        RRF score = sum(1 / (k + rank)) for each retriever
+        
+        Args:
+            dense_results: Dense vector 검색 결과
+            sparse_results: Sparse vector 검색 결과
+            top_k: 반환할 최대 문서 수
+            k: RRF 상수 (기본값: 60)
+        """
+        rrf_scores = defaultdict(float)
+        doc_map = {}
+        
+        # Dense 결과의 순위 스코어 계산
+        for rank, hit in enumerate(dense_results, start=1):
+            doc_id = hit.id
+            rrf_scores[doc_id] += 1.0 / (k + rank)
+            if doc_id not in doc_map:
+                doc_map[doc_id] = hit
+        
+        # Sparse 결과의 순위 스코어 계산
+        for rank, hit in enumerate(sparse_results, start=1):
+            doc_id = hit.id
+            rrf_scores[doc_id] += 1.0 / (k + rank)
+            if doc_id not in doc_map:
+                doc_map[doc_id] = hit
+        
+        # RRF 스코어로 정렬
+        sorted_docs = sorted(rrf_scores.items(), key=lambda x: x[1], reverse=True)
+        
+        # 상위 top_k개 반환
+        results = []
+        for doc_id, rrf_score in sorted_docs[:top_k]:
+            hit = doc_map[doc_id]
+            # RRF 스코어를 hit 객체에 추가
+            hit.score = rrf_score
+            results.append(hit)
+        
+        return results
+
     async def search(
         self,
         query_vector: List[float],
@@ -116,38 +163,68 @@ class QdrantAdapter:
         query_sparse_vector: Optional[Dict[str, List]] = None,
         fusion: str = "rrf",
     ) -> List[Dict[str, Any]]:
+        """
+        벡터 검색 수행 (Dense-only 또는 Hybrid with RRF)
+        
+        Qdrant 1.16+에서 sparse vector 검색을 지원합니다.
+        
+        Args:
+            query_vector: Dense 쿼리 벡터
+            top_k: 반환할 최대 문서 수
+            filter: 메타데이터 필터
+            query_sparse_vector: Sparse 벡터 (Hybrid 검색 시)
+            fusion: Fusion 방법 (기본값: "rrf")
+        
+        Returns:
+            검색 결과 리스트
+        """
         try:
             search_filter = self._build_filter(filter)
-            # Hybrid search with named vectors
+            
             if query_sparse_vector:
+                logger.info(f"Hybrid search: top_k={top_k}, sparse_indices={len(query_sparse_vector['indices'])}")
+                
+                # Dense 검색
+                dense_results = self.client.query_points(
+                    collection_name=self.collection_name,
+                    query=query_vector,
+                    using="dense",
+                    limit=top_k * 2,
+                    query_filter=search_filter,
+                ).points
+                logger.info(f"Dense search returned {len(dense_results)} results")
+                
+                # Sparse 검색 - SparseVector를 직접 query로 전달하고 using 제거
+                sparse_results = self.client.query_points(
+                    collection_name=self.collection_name,
+                    query=SparseVector(
+                        indices=query_sparse_vector["indices"],
+                        values=query_sparse_vector["values"],
+                    ),
+                    using="sparse",
+                    limit=top_k * 2,
+                    query_filter=search_filter,
+                ).points
+                logger.info(f"Sparse search returned {len(sparse_results)} results")
+                
+                # RRF 적용
+                results = self._apply_rrf(dense_results, sparse_results, top_k)
+                logger.info(f"RRF returned {len(results)} results")
+            else:
+                # Dense-only 검색
+                logger.info(f"Dense-only search: top_k={top_k}")
                 results = self.client.query_points(
                     collection_name=self.collection_name,
                     query=query_vector,
                     using="dense",
-                    prefetch=[
-                        {
-                            "query": SparseVector(
-                                indices=query_sparse_vector["indices"],
-                                values=query_sparse_vector["values"],
-                            ),
-                            "using": "sparse",
-                            "limit": top_k * 2,
-                        }
-                    ],
                     limit=top_k,
                     query_filter=search_filter,
                 ).points
-            else:
-                # Dense-only search with named vector
-                results = self.client.search(
-                    collection_name=self.collection_name,
-                    query_vector=("dense", query_vector),
-                    limit=top_k,
-                    query_filter=search_filter,
-                )
+                logger.info(f"Dense search returned {len(results)} results")
 
             return [{"id": hit.id, "score": hit.score, "metadata": hit.payload} for hit in results]
         except Exception as e:
+            logger.error(f"Search failed: {e}", exc_info=True)
             raise VectorStoreException(f"Failed to search vectors: {e}") from e
 
     async def delete(self, ids: List[str]) -> None:
@@ -168,9 +245,6 @@ class QdrantAdapter:
             points, _ = result
             return len(points) > 0
         except Exception as e:
-            import logging
-
-            logger = logging.getLogger(__name__)
             logger.warning(f"Failed to check existence: {e}")
             return False
 

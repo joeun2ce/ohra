@@ -6,8 +6,24 @@ from ohra.shared_kernel.infra.sagemaker import SageMakerEmbeddingAdapter
 from ohra.workers.sync.schemas import VectorPayload
 
 
+def _tokenize_korean_for_sparse(text: str) -> List[str]:
+    tokens = []
+    words = text.lower().split()
+
+    for word in words:
+        tokens.append(word)
+        if len(word) >= 2:
+            for i in range(len(word) - 1):
+                if i + 2 <= len(word):
+                    tokens.append(word[i : i + 2])
+                if i + 3 <= len(word):
+                    tokens.append(word[i : i + 3])
+
+    return tokens
+
+
 def _calculate_sparse_vector(text: str) -> Dict[str, List]:
-    tokens = text.lower().split()
+    tokens = _tokenize_korean_for_sparse(text)
     if not tokens:
         return {"indices": [], "values": []}
 

@@ -7,7 +7,7 @@ authors = [{ name = "eun2ce", email = "joeun2ce@gmail.com" }]
 requires-python = ">=3.12"
 dependencies = [
     "ohra-shared-kernel",
-    "qdrant-client>=1.7.0",
+    "qdrant-client>=1.16.0",
     "pydantic-settings>=2.0.0",
 ]
 

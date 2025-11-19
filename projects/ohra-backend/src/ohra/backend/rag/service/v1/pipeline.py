@@ -41,12 +41,18 @@ class LangchainRAGAnalyzer:
     ) -> ChatCompletionResponse:
         query = next((msg.content for msg in reversed(request.messages) if msg.role == "user"), "")
 
+        print(f"[RAG] Query: {query[:100]}, top_k: {self.config.top_k}, mode: {self.config.search_mode}", flush=True)
         context_docs = await self.hybrid_retriever.retrieve(
             query=query,
             top_k=self.config.top_k,
             filter=filter,
             search_mode=self.config.search_mode,
         )
+        print(f"[RAG] Found {len(context_docs)} documents", flush=True)
+        if context_docs:
+            print(f"[RAG] First doc: {context_docs[0].title[:50]}... (score: {context_docs[0].score:.4f})", flush=True)
+        else:
+            print(f"[RAG] No documents found!", flush=True)
         context_text = format_context_docs(context_docs)
 
         enhanced_query = __PROMPT_TEMPLATE__.format(context=context_text, question=query)
